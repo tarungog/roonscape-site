@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Highest-Value FLOP — roonscape</title>
+<meta name="description" content="Who gets the GPU-hour in a compute crunch — an interactive model of token share vs. profit share.">
+<meta property="og:title" content="The Highest-Value FLOP">
+<meta property="og:description" content="Who gets the GPU-hour in a compute crunch — an interactive model.">
+<link rel="stylesheet" href="/assets/style.css">
+<style>
+  body { background: var(--bg); }
+
+  .essay-top {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 5.5rem 1.5rem 0;
+  }
+  .essay-top .back {
+    color: var(--faint);
+    text-decoration: none;
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .essay-top .back:hover { color: var(--accent); }
+  .essay-top h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: normal;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    margin-top: 2.2rem;
+  }
+  .essay-top .dek {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-top: 0.7rem;
+  }
+  .essay-top .date {
+    color: var(--faint);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    margin-top: 1rem;
+  }
+
+  article {
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+    font-size: 1.06rem;
+  }
+  article p { margin: 1.1rem 0; }
+  article h2 {
+    font-size: 0.85rem;
+    font-weight: normal;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 3rem 0 1rem;
+  }
+
+  /* prose slots — visible scaffolding, replace with real prose */
+  .slot {
+    border: 1px dashed var(--accent-dim);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1.2rem 0;
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .slot .tag {
+    display: block;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-style: normal;
+    margin-bottom: 0.5rem;
+  }
+  .slot ul { margin: 0.3rem 0 0.3rem 1.2rem; }
+  .slot li { margin: 0.35rem 0; }
+
+  /* ---- instrument ---- */
+  .instrument {
+    max-width: 52rem;
+    margin: 2.5rem auto;
+    padding: 1.8rem 1.6rem 1.4rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .instrument .i-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .instrument .i-sub {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 1.1rem 2rem;
+    margin-bottom: 1.5rem;
+  }
+  .ctl label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+  .ctl label output { color: var(--ink); font-style: normal; }
+  .ctl input[type=range] {
+    width: 100%;
+    accent-color: var(--accent);
+    background: transparent;
+  }
+
+  #strip { width: 100%; height: 92px; display: block; }
+  .strip-caption {
+    color: var(--faint);
+    font-size: 0.78rem;
+    margin-top: 0.35rem;
+    display: flex;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+  }
+  .strip-caption .k::before {
+    content: "";
+    display: inline-block;
+    width: 0.6em; height: 0.6em;
+    border-radius: 50%;
+    margin-right: 0.4em;
+  }
+  .k.frontier::before { background: #e0854a; }
+  .k.open::before { background: #8f7fd4; }
+  .k.unserved::before { background: #3a3648; }
+
+  .bars { margin-top: 1.6rem; }
+  .bar-row { margin: 0.9rem 0; }
+  .bar-row .bl {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+  .bar {
+    height: 14px;
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    background: #211e2e;
+  }
+  .bar .f { background: #e0854a; transition: width 0.25s ease; }
+  .bar .o { background: #8f7fd4; transition: width 0.25s ease; }
+
+  .punchline {
+    margin-top: 1.5rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+    font-style: italic;
+    color: var(--ink);
+    font-size: 1rem;
+  }
+  .punchline strong { color: var(--accent); font-weight: normal; }
+
+  footer.site { margin-top: 0; }
+</style>
+</head>
+<body>
+
+<div class="essay-top">
+  <a class="back" href="/">&larr; roonscape</a>
+  <h1>The Highest-Value FLOP</h1>
+  <p class="dek">who gets the GPU-hour when there aren&rsquo;t enough GPU-hours</p>
+  <p class="date">DRAFT &mdash; July 2026</p>
+</div>
+
+<article>
+  <div class="slot">
+    <span class="tag">your opening &mdash; the claim</span>
+    The provocation that started this: Kimi K3 is genuinely good, yet you expect
+    ~0% of world compute to run it instead of Claude. The strong version of the
+    claim, sharpened: <em>open models will win tokens; frontier closed models will
+    win the gross-profit pool &mdash; and a compute crunch concentrates the profit
+    pool faster than it erodes it.</em>
+  </div>
+
+  <div class="slot">
+    <span class="tag">setup &mdash; the wrong variable</span>
+    <ul>
+      <li>Margin percentage is not what wins compute; revenue per GPU-hour is.</li>
+      <li>The compute owner's auction: scarce GPU-hours flow to the highest
+          willingness-to-pay per FLOP (the TSMC-shortage dynamic).</li>
+      <li>The margin is the bounty that attracts substitution &mdash; it is evidence
+          of a capability gap only while customers keep paying it.</li>
+    </ul>
+  </div>
+
+  <h2>The Instrument</h2>
+  <p style="color: var(--muted); font-style: italic;">
+    Each dot is a workload, ordered by the value it gets from a marginal token.
+    Amber workloads require a frontier model &mdash; long-horizon agents where
+    per-step reliability compounds. Violet run fine on an open model. Drag the
+    compute supply down and watch who keeps their GPU-hours &mdash; and where the
+    profit goes.
+  </p>
+</article>
+
+<div class="instrument">
+  <div class="i-title">Compute Allocation Under Scarcity</div>
+  <div class="i-sub">a toy market: one pool of GPU-hours, auctioned by revenue density</div>
+
+  <div class="controls">
+    <div class="ctl">
+      <label>compute supply <output id="v-supply">100%</output></label>
+      <input type="range" id="s-supply" min="15" max="200" value="100">
+    </div>
+    <div class="ctl">
+      <label>frontier price premium <output id="v-premium">6&times;</output></label>
+      <input type="range" id="s-premium" min="2" max="20" value="6">
+    </div>
+    <div class="ctl">
+      <label>frontier-only workloads <output id="v-gap">25%</output></label>
+      <input type="range" id="s-gap" min="0" max="60" value="25">
+    </div>
+  </div>
+
+  <canvas id="strip"></canvas>
+  <div class="strip-caption">
+    <span class="k frontier">served by frontier</span>
+    <span class="k open">served by open</span>
+    <span class="k unserved">priced out (the spillover market)</span>
+  </div>
+
+  <div class="bars">
+    <div class="bar-row">
+      <div class="bl"><span>token share</span><span id="t-tokens"></span></div>
+      <div class="bar"><div class="f" id="b-tok-f"></div><div class="o" id="b-tok-o"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bl"><span>revenue share</span><span id="t-rev"></span></div>
+      <div class="bar"><div class="f" id="b-rev-f"></div><div class="o" id="b-rev-o"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bl"><span>gross-profit share</span><span id="t-prof"></span></div>
+      <div class="bar"><div class="f" id="b-prof-f"></div><div class="o" id="b-prof-o"></div></div>
+    </div>
+  </div>
+
+  <p class="punchline" id="punchline"></p>
+</div>
+
+<article>
+  <div class="slot">
+    <span class="tag">reading the model &mdash; what to point at</span>
+    <ul>
+      <li>Squeeze supply: open workloads fall off the bottom while frontier holds
+          &mdash; the crunch <em>protects</em> the high-value allocation.</li>
+      <li>But watch the gray region grow: that unserved demand is the spillover
+          market where substitutes get their foothold. The crunch strengthens the
+          incumbent's allocation and its challenger's pipeline at once.</li>
+      <li>Profit share barely moves through all of it &mdash; the pool was always
+          concentrated in the amber dots.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <span class="tag">the honest counterarguments</span>
+    <ul>
+      <li>K3 priced at $3/$15 &mdash; Sonnet pricing &mdash; is Moonshot claiming the
+          premium tier, not the commodity tier. The moat narrows to the top-end
+          tier plus trust, not a broad capability chasm.</li>
+      <li>&ldquo;World compute&rdquo; is not one auction: Chinese domestic compute
+          runs Kimi at 100% share because Claude structurally cannot bid.</li>
+      <li>Token-share data (Vercel gateway 29% open-weight and climbing) already
+          falsifies the literal ~0% &mdash; restate in value terms or lose the
+          reader who checks.</li>
+    </ul>
+  </div>
+
+  <div class="slot">
+    <span class="tag">your close</span>
+    Where you actually land: which moat are you betting on &mdash; the capability
+    gap, or trust + the top tier? And what would change your mind.
+  </div>
+</article>
+
+<footer class="site">
+  <div class="inner">
+    <span><a href="/">roonscape</a></span>
+    <span>
+      <a href="https://roonscape.substack.com">newsletter</a> &nbsp;&middot;&nbsp;
+      <a href="https://tweets.roonscape.ai">tweets</a>
+    </span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  // deterministic workload population
+  function mulberry32(a) {
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var rand = mulberry32(0xF10);
+
+  var N = 420;
+  var workloads = [];
+  for (var i = 0; i < N; i++) {
+    // heavy-tailed value per token unit
+    var u = rand();
+    var value = Math.pow(1 / (1 - u * 0.9995), 0.8); // ~1 .. ~450
+    workloads.push({ value: value, jitter: rand() });
+  }
+  workloads.sort(function (a, b) { return b.value - a.value; });
+
+  // economics constants (per token unit)
+  var OPEN_PRICE = 1.25, OPEN_COST = 1;   // open: commodity hosting, competed-down margin
+  var FRONTIER_COST = 3;                   // frontier: 3x FLOPs per token
+  var BASE_SUPPLY = 0;                     // set below = demand at defaults
+
+  var els = {
+    supply: document.getElementById('s-supply'),
+    premium: document.getElementById('s-premium'),
+    gap: document.getElementById('s-gap'),
+    vSupply: document.getElementById('v-supply'),
+    vPremium: document.getElementById('v-premium'),
+    vGap: document.getElementById('v-gap'),
+    strip: document.getElementById('strip'),
+    punch: document.getElementById('punchline')
+  };
+  var ctx = els.strip.getContext('2d');
+
+  function simulate() {
+    var supplyPct = +els.supply.value / 100;
+    var premium = +els.premium.value;
+    var gapPct = +els.gap.value / 100;
+
+    var frontierPrice = OPEN_PRICE * premium;
+
+    // top gapPct of workloads (by value) require frontier
+    var nReq = Math.round(N * gapPct);
+    var served = [];
+    workloads.forEach(function (w, idx) {
+      var req = idx < nReq;
+      var model = null;
+      if (req) {
+        if (w.value >= frontierPrice) model = 'f';
+      } else {
+        if (w.value >= OPEN_PRICE) model = 'o';
+      }
+      served.push({ w: w, idx: idx, model: model, req: req });
+    });
+
+    // full-demand GPU need at 100% supply defines the baseline pool
+    var fullNeed = 0;
+    served.forEach(function (s) {
+      if (s.model === 'f') fullNeed += FRONTIER_COST;
+      if (s.model === 'o') fullNeed += OPEN_COST;
+    });
+    if (!BASE_SUPPLY) BASE_SUPPLY = fullNeed; // captured on first run (default sliders)
+    var S = BASE_SUPPLY * supplyPct;
+
+    // auction: higher revenue-per-GPU-hour bids first; within a class, higher value first
+    var fDensity = frontierPrice / FRONTIER_COST;
+    var oDensity = OPEN_PRICE / OPEN_COST;
+    var order = served.filter(function (s) { return s.model; });
+    order.sort(function (a, b) {
+      var da = a.model === 'f' ? fDensity : oDensity;
+      var db = b.model === 'f' ? fDensity : oDensity;
+      if (da !== db) return db - da;
+      return b.w.value - a.w.value;
+    });
+
+    var used = 0;
+    var stats = { f: { tok: 0, rev: 0, prof: 0 }, o: { tok: 0, rev: 0, prof: 0 } };
+    order.forEach(function (s) {
+      var cost = s.model === 'f' ? FRONTIER_COST : OPEN_COST;
+      var price = s.model === 'f' ? frontierPrice : OPEN_PRICE;
+      if (used + cost <= S) {
+        used += cost;
+        var st = stats[s.model];
+        st.tok += 1; st.rev += price; st.prof += price - cost;
+      } else {
+        s.model = null; // priced out by the crunch
+      }
+    });
+
+    return { served: served, stats: stats, premium: premium };
+  }
+
+  function pct(a, b) { return (a + b) === 0 ? 0 : Math.round(100 * a / (a + b)); }
+
+  function setBar(fEl, oEl, tEl, f, o, label) {
+    var pf = pct(f, o), po = 100 - pf;
+    if (f + o === 0) { pf = 0; po = 0; }
+    document.getElementById(fEl).style.width = pf + '%';
+    document.getElementById(oEl).style.width = po + '%';
+    document.getElementById(tEl).textContent =
+      (f + o === 0) ? 'no market' : ('frontier ' + pf + '% · open ' + po + '%');
+  }
+
+  function drawStrip(served) {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = els.strip.clientWidth, H = 92;
+    els.strip.width = W * dpr; els.strip.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    var pad = 4, cols = served.length;
+    served.forEach(function (s, i) {
+      var x = pad + (i / (cols - 1)) * (W - pad * 2);
+      var y = 14 + s.w.jitter * (H - 28);
+      var r = s.req ? 3.1 : 2.4;
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = s.model === 'f' ? '#e0854a' : s.model === 'o' ? '#8f7fd4' : '#3a3648';
+      ctx.fill();
+    });
+  }
+
+  function update() {
+    var r = simulate();
+    els.vSupply.textContent = els.supply.value + '%';
+    els.vPremium.innerHTML = els.premium.value + '&times;';
+    els.vGap.textContent = els.gap.value + '%';
+
+    setBar('b-tok-f', 'b-tok-o', 't-tokens', r.stats.f.tok, r.stats.o.tok);
+    setBar('b-rev-f', 'b-rev-o', 't-rev', r.stats.f.rev, r.stats.o.rev);
+    setBar('b-prof-f', 'b-prof-o', 't-prof', r.stats.f.prof, r.stats.o.prof);
+
+    var tokOpen = pct(r.stats.o.tok, r.stats.f.tok);
+    var profOpen = pct(r.stats.o.prof, r.stats.f.prof);
+    var out = r.served.filter(function (s) { return !s.model && s.w.value >= OPEN_PRICE; }).length;
+    els.punch.innerHTML =
+      'Open models serve <strong>' + tokOpen + '%</strong> of tokens and take <strong>' +
+      profOpen + '%</strong> of gross profit. ' +
+      (out > 0 ? out + ' workloads are priced out &mdash; the substitute&rsquo;s future customers.' : 'Every workload is served.');
+
+    drawStrip(r.served);
+  }
+
+  ['s-supply', 's-premium', 's-gap'].forEach(function (id) {
+    document.getElementById(id).addEventListener('input', update);
+  });
+  window.addEventListener('resize', update);
+  update();
+})();
+</script>
+</body>
+</html>
