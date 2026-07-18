@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not found — roonscape</title>
+<script>
+// Substack-shaped paths (posts, archive, comments, etc.) that don't exist on
+// this site get forwarded to the newsletter, preserving the full path. Covers
+// posts published after the redirect stubs were generated.
+(function () {
+  var p = window.location.pathname;
+  if (/^\/(p|archive|about|comments|notes|subscribe|podcast|t)(\/|$)/.test(p)) {
+    window.location.replace("https://read.roonscape.ai" + p + window.location.search);
+  }
+})();
+</script>
+<style>
+  body { background:#faf8f4; color:#1c1a17; font-family:Georgia,serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  @media (prefers-color-scheme: dark) { body { background:#14120f; color:#e8e3d9; } }
+  main { text-align:center; }
+  a { color:inherit; }
+</style>
+</head>
+<body>
+<main>
+  <h1>404</h1>
+  <p>Nothing here. Try the <a href="/">front page</a> or the <a href="https://read.roonscape.ai">newsletter</a>.</p>
+</main>
+</body>
+</html>

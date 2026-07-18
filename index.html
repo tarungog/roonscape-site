@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>roonscape</title>
+<meta name="description" content="roonscape — essays, archives, and experiments.">
+<style>
+  :root {
+    --bg: #faf8f4;
+    --ink: #1c1a17;
+    --muted: #8a8377;
+    --line: #e4dfd5;
+    --accent: #b0521e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14120f;
+      --ink: #e8e3d9;
+      --muted: #7d7669;
+      --line: #2a271f;
+      --accent: #e07038;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  main { max-width: 34rem; width: 100%; }
+  h1 {
+    font-size: 2.4rem;
+    font-weight: normal;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+  .tagline {
+    color: var(--muted);
+    font-style: italic;
+    margin-bottom: 2.8rem;
+  }
+  nav { border-top: 1px solid var(--line); }
+  nav a {
+    display: block;
+    padding: 1.1rem 0.2rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink);
+    text-decoration: none;
+    transition: padding-left 0.15s ease;
+  }
+  nav a:hover { padding-left: 0.7rem; color: var(--accent); }
+  nav a .where {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    font-style: italic;
+  }
+  footer {
+    margin-top: 2.6rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>roonscape</h1>
+  <p class="tagline">essays, archives, and experiments</p>
+  <nav>
+    <a href="https://read.roonscape.ai">
+      newsletter
+      <span class="where">essays &amp; letters, on Substack</span>
+    </a>
+    <a href="https://tweets.roonscape.ai">
+      tweet archive
+      <span class="where">the @tszzl corpus, machine-readable</span>
+    </a>
+    <a href="https://read.roonscape.ai/about">
+      about
+      <span class="where">who &amp; why</span>
+    </a>
+  </nav>
+  <footer>
+    <p>subscribe at <a href="https://read.roonscape.ai">read.roonscape.ai</a></p>
+  </footer>
+</main>
+</body>
+</html>
