@@ -1,0 +1,225 @@
+:root {
+  --bg: #0a0a12;
+  --bg-panel: #11101c;
+  --ink: #e9e5f2;
+  --muted: #9a93a8;
+  --faint: #5b556b;
+  --line: #232030;
+  --accent: #e0854a;
+  --accent-dim: #8a5432;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+/* ---- hero ---- */
+
+header.scape {
+  position: relative;
+  height: 88vh;
+  min-height: 480px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+#scape-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hero-text {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 11vh;
+  text-shadow: 0 1px 18px rgba(10, 10, 18, 0.85);
+}
+
+.hero-text h1 {
+  font-size: clamp(2.6rem, 7vw, 4.4rem);
+  font-weight: normal;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.hero-text .tagline {
+  margin-top: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+  font-size: clamp(1rem, 2.2vw, 1.15rem);
+}
+
+nav.site {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.4rem 1.5rem;
+}
+
+nav.site .mark {
+  font-style: italic;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+nav.site .links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-left: 1.3rem;
+}
+
+nav.site .links a:hover { color: var(--accent); }
+
+/* ---- sections ---- */
+
+main { max-width: 44rem; margin: 0 auto; padding: 0 1.5rem; }
+
+section { padding: 4.5rem 0 1rem; }
+
+section > h2 {
+  font-size: 0.85rem;
+  font-weight: normal;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 2rem;
+}
+
+/* essays */
+
+.essay {
+  display: block;
+  text-decoration: none;
+  padding: 1.35rem 0.2rem;
+  border-top: 1px solid var(--line);
+  transition: padding-left 0.18s ease;
+}
+
+.essay:last-of-type { border-bottom: 1px solid var(--line); }
+
+.essay:hover { padding-left: 0.8rem; }
+
+.essay .t {
+  font-size: 1.35rem;
+  letter-spacing: -0.01em;
+}
+
+.essay:hover .t { color: var(--accent); }
+
+.essay .sub {
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 0.15rem;
+}
+
+.essay .date {
+  color: var(--faint);
+  font-size: 0.82rem;
+  margin-top: 0.35rem;
+  letter-spacing: 0.06em;
+}
+
+.more-link {
+  display: inline-block;
+  margin-top: 1.4rem;
+  color: var(--muted);
+  font-style: italic;
+  text-decoration-color: var(--faint);
+}
+
+.more-link:hover { color: var(--accent); }
+
+/* lab */
+
+.lab-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 1rem;
+}
+
+.lab-card {
+  display: block;
+  text-decoration: none;
+  background: var(--bg-panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 1.2rem 1.2rem 1.05rem;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+a.lab-card:hover { border-color: var(--accent-dim); transform: translateY(-2px); }
+
+.lab-card .t { font-size: 1.08rem; }
+
+.lab-card .d {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-style: italic;
+  margin-top: 0.3rem;
+  line-height: 1.45;
+}
+
+.lab-card .status {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+.lab-card .status.live { color: var(--accent); }
+
+/* about + footer */
+
+#about p { color: var(--muted); max-width: 36rem; }
+#about a { text-decoration-color: var(--faint); }
+#about a:hover { color: var(--accent); }
+
+footer.site {
+  margin-top: 5rem;
+  padding: 2.2rem 1.5rem 2.8rem;
+  border-top: 1px solid var(--line);
+}
+
+footer.site .inner {
+  max-width: 44rem;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  color: var(--faint);
+  font-size: 0.85rem;
+}
+
+footer.site a { color: var(--muted); text-decoration: none; }
+footer.site a:hover { color: var(--accent); }

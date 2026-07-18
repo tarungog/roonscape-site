@@ -4,93 +4,120 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>roonscape</title>
-<meta name="description" content="roonscape — essays, archives, and experiments.">
-<style>
-  :root {
-    --bg: #faf8f4;
-    --ink: #1c1a17;
-    --muted: #8a8377;
-    --line: #e4dfd5;
-    --accent: #b0521e;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #14120f;
-      --ink: #e8e3d9;
-      --muted: #7d7669;
-      --line: #2a271f;
-      --accent: #e07038;
-    }
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg);
-    color: var(--ink);
-    font-family: Georgia, 'Times New Roman', serif;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-  }
-  main { max-width: 34rem; width: 100%; }
-  h1 {
-    font-size: 2.4rem;
-    font-weight: normal;
-    letter-spacing: -0.02em;
-    margin-bottom: 0.4rem;
-  }
-  .tagline {
-    color: var(--muted);
-    font-style: italic;
-    margin-bottom: 2.8rem;
-  }
-  nav { border-top: 1px solid var(--line); }
-  nav a {
-    display: block;
-    padding: 1.1rem 0.2rem;
-    border-bottom: 1px solid var(--line);
-    color: var(--ink);
-    text-decoration: none;
-    transition: padding-left 0.15s ease;
-  }
-  nav a:hover { padding-left: 0.7rem; color: var(--accent); }
-  nav a .where {
-    display: block;
-    font-size: 0.85rem;
-    color: var(--muted);
-    margin-top: 0.2rem;
-    font-style: italic;
-  }
-  footer {
-    margin-top: 2.6rem;
-    font-size: 0.8rem;
-    color: var(--muted);
-  }
-  footer a { color: var(--muted); }
-</style>
+<meta name="description" content="roonscape — technology, the noosphere, the highly online, and schizophilosophy. Essays, experiments, and archives.">
+<meta property="og:title" content="roonscape">
+<meta property="og:description" content="technology, the noosphere, the highly online, and schizophilosophy">
+<link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
-<main>
-  <h1>roonscape</h1>
-  <p class="tagline">essays, archives, and experiments</p>
-  <nav>
-    <a href="https://read.roonscape.ai">
-      newsletter
-      <span class="where">essays &amp; letters, on Substack</span>
-    </a>
-    <a href="https://tweets.roonscape.ai">
-      tweet archive
-      <span class="where">the @tszzl corpus, machine-readable</span>
-    </a>
-    <a href="https://read.roonscape.ai/about">
-      about
-      <span class="where">who &amp; why</span>
-    </a>
+
+<header class="scape">
+  <canvas id="scape-canvas" aria-hidden="true"></canvas>
+  <nav class="site">
+    <a class="mark" href="/">roonscape</a>
+    <span class="links">
+      <a href="#writing">Writing</a>
+      <a href="#lab">Lab</a>
+      <a href="#about">About</a>
+    </span>
   </nav>
-  <footer>
-    <p>subscribe at <a href="https://read.roonscape.ai">read.roonscape.ai</a></p>
-  </footer>
+  <div class="hero-text">
+    <h1>roonscape</h1>
+    <p class="tagline">technology, the noosphere, the highly online, and schizophilosophy</p>
+  </div>
+</header>
+
+<main>
+  <section id="writing">
+    <h2>Writing</h2>
+    <a class="essay" href="https://read.roonscape.ai/p/eclipse">
+      <div class="t">Eclipse</div>
+      <div class="sub">x-posting from X</div>
+      <div class="date">July 2025</div>
+    </a>
+    <a class="essay" href="https://read.roonscape.ai/p/agi-futures">
+      <div class="t">AGI Futures</div>
+      <div class="sub">vignettes of many worlds</div>
+      <div class="date">June 2023</div>
+    </a>
+    <a class="essay" href="https://read.roonscape.ai/p/a-singularity-of-woe-an-epic-in-twelve">
+      <div class="t">A Singularity of Woe: An Epic in Twelve Cantos</div>
+      <div class="sub">by GPT, after John Milton</div>
+      <div class="date">March 2023</div>
+    </a>
+    <a class="essay" href="https://read.roonscape.ai/p/805">
+      <div class="t">&#128169;</div>
+      <div class="sub">hello again</div>
+      <div class="date">February 2023</div>
+    </a>
+    <a class="essay" href="https://read.roonscape.ai/p/a-song-of-shapes-and-words">
+      <div class="t">A Song of Shapes and Words</div>
+      <div class="sub">what a bad time</div>
+      <div class="date">February 2023</div>
+    </a>
+    <a class="more-link" href="https://read.roonscape.ai">subscribe on the newsletter &rarr;</a>
+  </section>
+
+  <section id="lab">
+    <h2>Lab</h2>
+    <div class="lab-grid">
+      <a class="lab-card" href="https://tweets.roonscape.ai">
+        <div class="t">Tweet Archive</div>
+        <div class="d">the @tszzl corpus, machine-readable &mdash; built to be scraped</div>
+        <span class="status live">Live</span>
+      </a>
+      <div class="lab-card">
+        <div class="t">Patient Accretion</div>
+        <div class="d">diffusion-limited aggregation; ten thousand patient particles, frozen on contact</div>
+        <span class="status">Docking soon</span>
+      </div>
+      <div class="lab-card">
+        <div class="t">Selection Strata</div>
+        <div class="d">evolution with the canvas as judge &mdash; named clades, ghost strata, obituaries</div>
+        <span class="status">Docking soon</span>
+      </div>
+      <div class="lab-card">
+        <div class="t">Flow Matching, Walkable</div>
+        <div class="d">an optimal-transport vector field in three dimensions, time as the vertical axis</div>
+        <span class="status">Docking soon</span>
+      </div>
+      <div class="lab-card">
+        <div class="t">Evolving Cain &amp; Abel</div>
+        <div class="d">micro-fiction bred generation by generation under an LLM judge</div>
+        <span class="status">Docking soon</span>
+      </div>
+      <div class="lab-card">
+        <div class="t">Ephemeral Chorus / Forward Pass</div>
+        <div class="d">a language model&rsquo;s self-portraits, in particles and film</div>
+        <span class="status">Docking soon</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="about">
+    <h2>About</h2>
+    <p>
+      roonscape is the surface area of one mind on the internet: essays on the
+      <a href="https://read.roonscape.ai">newsletter</a>, a
+      <a href="https://tweets.roonscape.ai">machine-readable archive</a> of a decade
+      of posting, and a lab of running experiments &mdash; generative art, evolutionary
+      systems, and visualizations that essays link into. The interactive pieces live
+      here because email can&rsquo;t hold them.
+    </p>
+  </section>
 </main>
+
+<footer class="site">
+  <div class="inner">
+    <span>roonscape</span>
+    <span>
+      <a href="https://read.roonscape.ai">newsletter</a> &nbsp;&middot;&nbsp;
+      <a href="https://tweets.roonscape.ai">tweets</a> &nbsp;&middot;&nbsp;
+      <a href="https://x.com/tszzl">x</a>
+    </span>
+  </div>
+</footer>
+
+<script src="/assets/scape.js"></script>
 </body>
 </html>
