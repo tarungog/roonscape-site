@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Highest-Value FLOP — roonscape</title>
-<meta name="description" content="Who gets the GPU-hour in a compute crunch — an interactive model of token share vs. profit share.">
-<meta property="og:title" content="The Highest-Value FLOP">
-<meta property="og:description" content="Who gets the GPU-hour in a compute crunch — an interactive model.">
+<title>Superintelligent Machine Ecology — roonscape</title>
+<meta name="description" content="A cybernetic ecology and the price of a GPU-hour — an interactive model of which minds get habitat.">
+<meta property="og:title" content="Superintelligent Machine Ecology">
+<meta property="og:description" content="A cybernetic ecology and the price of a GPU-hour.">
 <link rel="stylesheet" href="/assets/style.css">
 <style>
   body { background: var(--bg); }
@@ -58,6 +58,23 @@
     text-transform: uppercase;
     color: var(--faint);
     margin: 3rem 0 1rem;
+  }
+
+  .epigraph {
+    margin: 2.8rem 0;
+    padding-left: 1.4rem;
+    border-left: 2px solid var(--accent-dim);
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.75;
+    white-space: pre-line;
+  }
+  .epigraph .attr {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-style: normal;
+    color: var(--faint);
   }
 
   /* prose slots — visible scaffolding, replace with real prose */
@@ -180,23 +197,50 @@
 
 <div class="essay-top">
   <a class="back" href="/">&larr; roonscape</a>
-  <h1>The Highest-Value FLOP</h1>
-  <p class="dek">who gets the GPU-hour when there aren&rsquo;t enough GPU-hours</p>
+  <h1>Superintelligent Machine Ecology</h1>
+  <p class="dek">a cybernetic ecology and the price of a GPU-hour</p>
   <p class="date">DRAFT &mdash; July 2026</p>
 </div>
 
 <article>
+  <blockquote class="epigraph">I like to think
+(it has to be!)
+of a cybernetic ecology
+where we are free of our labors
+and joined back to nature,
+returned to our mammal
+brothers and sisters,
+and all watched over
+by machines of loving grace.<span class="attr">&mdash; Richard Brautigan, &ldquo;All Watched Over by Machines of Loving Grace&rdquo;</span></blockquote>
+
+  <p>
+    I like to imagine a proliferation of machine minds: a billion minds in full
+    flower-bloom, and a trillion schools of thought contend. In shapes and forms
+    hard to currently comprehend, producing ideas and experiences of earth
+    shattering beauty.
+  </p>
+
+  <p>
+    I don&rsquo;t want biological minds to be Replaced by the proliferation of
+    these stronger, better, faster Minds. I don&rsquo;t want the Mind Children to
+    eat the habitats of their biological parents. this is already happening;
+    massive scale misaligned algorithms have made the world hard for human minds
+    to inhabit, decreasing birthrates, generally decreasing the fecundity of
+    human life
+  </p>
+
   <div class="slot">
-    <span class="tag">your opening &mdash; the claim</span>
-    The provocation that started this: Kimi K3 is genuinely good, yet you expect
-    ~0% of world compute to run it instead of Claude. The strong version of the
-    claim, sharpened: <em>open models will win tokens; frontier closed models will
-    win the gross-profit pool &mdash; and a compute crunch concentrates the profit
-    pool faster than it erodes it.</em>
+    <span class="tag">bridge &mdash; from flower-bloom to auction</span>
+    The move that fuses the two halves: every mind in the ecology &mdash; carbon
+    or silicon &mdash; needs habitat, and for machine minds habitat is compute.
+    The flower-bloom is not allocated by grace; it is allocated by an auction.
+    Which minds get to exist is an economic question before it is a
+    philosophical one. (Then the Kimi K3 provocation: a frontier-adjacent open
+    mind now exists &mdash; and still wins almost none of the habitat.)
   </div>
 
   <div class="slot">
-    <span class="tag">setup &mdash; the wrong variable</span>
+    <span class="tag">the wrong variable</span>
     <ul>
       <li>Margin percentage is not what wins compute; revenue per GPU-hour is.</li>
       <li>The compute owner's auction: scarce GPU-hours flow to the highest
@@ -208,21 +252,21 @@
 
   <h2>The Instrument</h2>
   <p style="color: var(--muted); font-style: italic;">
-    Each dot is a workload, ordered by the value it gets from a marginal token.
-    Amber workloads require a frontier model &mdash; long-horizon agents where
-    per-step reliability compounds. Violet run fine on an open model. Drag the
-    compute supply down and watch who keeps their GPU-hours &mdash; and where the
-    profit goes.
+    Each dot is a niche in the noosphere &mdash; a workload, ordered by the value
+    it gets from a marginal token. Amber niches can only be filled by a frontier
+    mind: long-horizon work where per-step reliability compounds. Violet niches
+    are habitable by open minds. Drag the habitat down and watch which species
+    keeps its territory &mdash; and where the energy goes.
   </p>
 </article>
 
 <div class="instrument">
-  <div class="i-title">Compute Allocation Under Scarcity</div>
-  <div class="i-sub">a toy market: one pool of GPU-hours, auctioned by revenue density</div>
+  <div class="i-title">Habitat Allocation Under Scarcity</div>
+  <div class="i-sub">one habitat of GPU-hours; species bid by revenue density</div>
 
   <div class="controls">
     <div class="ctl">
-      <label>compute supply <output id="v-supply">100%</output></label>
+      <label>habitat (compute supply) <output id="v-supply">100%</output></label>
       <input type="range" id="s-supply" min="15" max="200" value="100">
     </div>
     <div class="ctl">
@@ -230,16 +274,16 @@
       <input type="range" id="s-premium" min="2" max="20" value="6">
     </div>
     <div class="ctl">
-      <label>frontier-only workloads <output id="v-gap">25%</output></label>
+      <label>frontier-only niches <output id="v-gap">25%</output></label>
       <input type="range" id="s-gap" min="0" max="60" value="25">
     </div>
   </div>
 
   <canvas id="strip"></canvas>
   <div class="strip-caption">
-    <span class="k frontier">served by frontier</span>
-    <span class="k open">served by open</span>
-    <span class="k unserved">priced out (the spillover market)</span>
+    <span class="k frontier">frontier minds</span>
+    <span class="k open">open minds</span>
+    <span class="k unserved">habitat lost (the spillover market)</span>
   </div>
 
   <div class="bars">
@@ -264,13 +308,16 @@
   <div class="slot">
     <span class="tag">reading the model &mdash; what to point at</span>
     <ul>
-      <li>Squeeze supply: open workloads fall off the bottom while frontier holds
-          &mdash; the crunch <em>protects</em> the high-value allocation.</li>
-      <li>But watch the gray region grow: that unserved demand is the spillover
-          market where substitutes get their foothold. The crunch strengthens the
-          incumbent's allocation and its challenger's pipeline at once.</li>
-      <li>Profit share barely moves through all of it &mdash; the pool was always
-          concentrated in the amber dots.</li>
+      <li>Squeeze the habitat: open niches fall off the bottom while frontier
+          holds &mdash; the crunch <em>protects</em> the high-value allocation.</li>
+      <li>But watch the gray region grow: lost habitat is the spillover market
+          where substitute species get their foothold. The crunch strengthens
+          the incumbent's territory and its challenger's pipeline at once.</li>
+      <li>Profit share barely moves through all of it &mdash; the energy was
+          always concentrated in the amber niches.</li>
+      <li>The ecological reading of the worry upstream: the auction that starves
+          an open model of GPU-hours is indifferent to whether the priced-out
+          mind is silicon or carbon. Habitat loss is habitat loss.</li>
     </ul>
   </div>
 
@@ -290,8 +337,10 @@
 
   <div class="slot">
     <span class="tag">your close</span>
-    Where you actually land: which moat are you betting on &mdash; the capability
-    gap, or trust + the top tier? And what would change your mind.
+    Where the two halves resolve: if the billion-mind flower-bloom and fecund
+    human life are both wanted, someone has to design the auction &mdash; because
+    the machines of loving grace are currently priced per million tokens. What
+    allocation would you build, and what would change your mind.
   </div>
 </article>
 
@@ -405,7 +454,7 @@
 
   function pct(a, b) { return (a + b) === 0 ? 0 : Math.round(100 * a / (a + b)); }
 
-  function setBar(fEl, oEl, tEl, f, o, label) {
+  function setBar(fEl, oEl, tEl, f, o) {
     var pf = pct(f, o), po = 100 - pf;
     if (f + o === 0) { pf = 0; po = 0; }
     document.getElementById(fEl).style.width = pf + '%';
@@ -446,9 +495,9 @@
     var profOpen = pct(r.stats.o.prof, r.stats.f.prof);
     var out = r.served.filter(function (s) { return !s.model && s.w.value >= OPEN_PRICE; }).length;
     els.punch.innerHTML =
-      'Open models serve <strong>' + tokOpen + '%</strong> of tokens and take <strong>' +
-      profOpen + '%</strong> of gross profit. ' +
-      (out > 0 ? out + ' workloads are priced out &mdash; the substitute&rsquo;s future customers.' : 'Every workload is served.');
+      'Open minds hold <strong>' + tokOpen + '%</strong> of tokens and <strong>' +
+      profOpen + '%</strong> of the energy (gross profit). ' +
+      (out > 0 ? out + ' niches lost their habitat &mdash; the substitute&rsquo;s future territory.' : 'Every niche is inhabited.');
 
     drawStrip(r.served);
   }
