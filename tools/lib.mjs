@@ -81,7 +81,46 @@ async function sampleSol(prompt) {
   return text;
 }
 
-// Sample 4 candidates (fable x2, sol x2). onProgress(line) is optional.
+// Local completion model: LoRA-tuned Llama-3.1-8B base on the author's corpus.
+// True completion — the prompt is the draft itself, no instructions at all.
+const ADAPTER = path.join(ROOT, "model", "adapters", "roon-8b");
+const MLX = path.join(ROOT, "model", ".venv", "bin", "mlx_lm.generate");
+export const localModelAvailable = () =>
+  fs.existsSync(path.join(ADAPTER, "adapters.safetensors")) && fs.existsSync(MLX);
+
+async function sampleRoonLocal(before, temp) {
+  // completion prompt: last ~6k chars of the draft, ending exactly at the cursor
+  const prompt = before.slice(-6000);
+  const args = [
+    "--model", "mlx-community/Meta-Llama-3.1-8B-4bit",
+    "--adapter-path", ADAPTER,
+    "--prompt", "-",
+    "--max-tokens", "400",
+    "--temp", String(temp),
+  ];
+  const out = await new Promise((resolve, reject) => {
+    const child = spawn(MLX, args, { cwd: ROOT, stdio: ["pipe", "pipe", "pipe"], timeout: 300_000 });
+    let stdout = "", stderr = "";
+    child.stdout.on("data", (d) => (stdout += d));
+    child.stderr.on("data", (d) => (stderr += d));
+    child.on("error", reject);
+    child.on("close", (code) =>
+      code === 0 ? resolve(stdout) : reject(new Error(`mlx exit ${code}: ${stderr.slice(-200)}`)),
+    );
+    child.stdin.end(prompt);
+  });
+  // mlx_lm.generate wraps the completion in ========== fences
+  const m = out.match(/==========\n([\s\S]*?)\n==========/);
+  let text = (m ? m[1] : out).trim();
+  // trim to the last complete paragraph so we don't hand back a mid-sentence tail
+  const lastBreak = text.lastIndexOf("\n\n");
+  if (lastBreak > 200) text = text.slice(0, lastBreak);
+  if (!text) throw new Error("empty completion");
+  return text.trim();
+}
+
+// Sample candidates (fable x2, sol x2, + roon-8b x2 when the adapter exists).
+// onProgress(line) is optional.
 export async function sampleCandidates({ before, after = "", hint = "", onProgress = () => {} }) {
   ensureKey();
   const corpus = loadCorpus();
@@ -92,6 +131,21 @@ export async function sampleCandidates({ before, after = "", hint = "", onProgre
     { model: "sol", variant: "A", run: () => sampleSol(genPrompt(corpus, before, after, hint, "A")) },
     { model: "sol", variant: "B", run: () => sampleSol(genPrompt(corpus, before, after, hint, "B")) },
   ];
+  let roonQueue = Promise.resolve();
+  if (localModelAvailable()) {
+    // the local model runs serially (one GPU); sampled at two temperatures.
+    // It sees no hint and no instructions — pure continuation of the draft.
+    attempts.push({
+      model: "roon-8b",
+      variant: "A",
+      run: () => roonQueue = roonQueue.then(() => sampleRoonLocal(before, 0.8)),
+    });
+    attempts.push({
+      model: "roon-8b",
+      variant: "B",
+      run: () => roonQueue = roonQueue.then(() => sampleRoonLocal(before, 1.0)),
+    });
+  }
   const settled = await Promise.allSettled(
     attempts.map((a) =>
       a.run().then(

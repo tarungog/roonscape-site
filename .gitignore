@@ -2,3 +2,6 @@ node_modules/
 .env
 drafts/
 voice/
+model/data/
+model/adapters/
+model/.venv/
