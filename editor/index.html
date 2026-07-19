@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>roonscape editor</title>
+<style>
+  :root {
+    --bg: #0a0a12; --bg-panel: #11101c; --ink: #e9e5f2; --muted: #9a93a8;
+    --faint: #5b556b; --line: #232030; --accent: #e0854a; --accent-dim: #8a5432;
+    --violet: #8f7fd4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', serif;
+    height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  header {
+    display: flex; align-items: baseline; gap: 1.2rem;
+    padding: 0.8rem 1.2rem; border-bottom: 1px solid var(--line);
+  }
+  header .mark { font-style: italic; color: var(--muted); }
+  header .slug { color: var(--accent); }
+  header .status { margin-left: auto; font-size: 0.8rem; color: var(--faint); }
+  header button {
+    background: none; border: 1px solid var(--line); border-radius: 4px;
+    color: var(--muted); font-family: inherit; font-size: 0.8rem;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.35rem 0.8rem; cursor: pointer;
+  }
+  header button:hover { border-color: var(--accent-dim); color: var(--accent); }
+  header button:disabled { opacity: 0.4; cursor: default; }
+
+  .cols { flex: 1; display: flex; min-height: 0; }
+
+  /* drafts sidebar */
+  aside {
+    width: 13rem; border-right: 1px solid var(--line);
+    padding: 1rem 0; overflow-y: auto; flex-shrink: 0;
+  }
+  aside .h {
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--faint); padding: 0 1.2rem 0.6rem;
+  }
+  aside .draft {
+    display: block; width: 100%; text-align: left;
+    background: none; border: none; color: var(--muted);
+    font-family: inherit; font-size: 0.95rem;
+    padding: 0.45rem 1.2rem; cursor: pointer;
+  }
+  aside .draft:hover { color: var(--ink); }
+  aside .draft.active { color: var(--accent); border-right: 2px solid var(--accent); }
+  aside .newdraft { color: var(--faint); font-style: italic; }
+
+  /* editor */
+  .editor-wrap { flex: 1; display: flex; justify-content: center; overflow-y: auto; }
+  textarea {
+    width: 100%; max-width: 44rem; border: none; outline: none; resize: none;
+    background: transparent; color: var(--ink);
+    font-family: inherit; font-size: 1.08rem; line-height: 1.75;
+    padding: 2.5rem 1.5rem 40vh; caret-color: var(--accent);
+  }
+
+  /* machine panel */
+  .machine {
+    width: 26rem; border-left: 1px solid var(--line);
+    display: flex; flex-direction: column; flex-shrink: 0; min-height: 0;
+  }
+  .machine .h {
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--accent); padding: 1rem 1.2rem 0.4rem;
+  }
+  .machine .body { flex: 1; overflow-y: auto; padding: 0.4rem 1.2rem 2rem; }
+  .machine .log { font-size: 0.78rem; color: var(--faint); white-space: pre-wrap; margin: 0.5rem 0; }
+  .machine .empty { color: var(--faint); font-style: italic; font-size: 0.9rem; margin-top: 0.6rem; }
+
+  .cand {
+    border: 1px solid var(--line); border-radius: 6px;
+    padding: 0.9rem 1rem; margin: 0.8rem 0; background: var(--bg-panel);
+  }
+  .cand.winner { border-color: var(--accent-dim); }
+  .cand .meta {
+    display: flex; gap: 0.7rem; align-items: baseline; margin-bottom: 0.5rem;
+    font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--faint);
+  }
+  .cand .meta .model-fable { color: var(--accent); }
+  .cand .meta .model-sol { color: var(--violet); }
+  .cand .text {
+    font-size: 0.9rem; line-height: 1.6; color: var(--muted);
+    max-height: 11rem; overflow: hidden; position: relative; white-space: pre-wrap;
+  }
+  .cand .text.open { max-height: none; }
+  .cand .actions { margin-top: 0.6rem; display: flex; gap: 0.8rem; }
+  .cand .actions button {
+    background: none; border: 1px solid var(--line); border-radius: 4px;
+    color: var(--muted); font-family: inherit; font-size: 0.75rem;
+    padding: 0.25rem 0.7rem; cursor: pointer;
+  }
+  .cand .actions button:hover { border-color: var(--accent-dim); color: var(--accent); }
+
+  .verdict {
+    border-left: 2px solid var(--accent-dim); padding: 0.2rem 0 0.2rem 0.9rem;
+    margin: 1rem 0; font-size: 0.85rem; line-height: 1.55; color: var(--muted);
+    white-space: pre-wrap;
+  }
+  .machine a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="mark">roonscape editor</span>
+  <span class="slug" id="slugLabel">—</span>
+  <span class="status" id="status">ready</span>
+  <button id="btnContinue">Continue ⌘⏎</button>
+  <button id="btnTypeset">Typeset</button>
+  <button id="btnPublish">Publish</button>
+</header>
+
+<div class="cols">
+  <aside>
+    <div class="h">Drafts</div>
+    <div id="draftList"></div>
+    <button class="draft newdraft" id="btnNew">+ new draft</button>
+  </aside>
+
+  <div class="editor-wrap">
+    <textarea id="ta" placeholder="write." spellcheck="false"></textarea>
+  </div>
+
+  <div class="machine">
+    <div class="h">Machine</div>
+    <div class="body" id="machineBody">
+      <div class="empty">Place the cursor where the essay should continue and hit
+      Continue — four candidates (fable ×2, sol ×2) get judged blind against your
+      corpus. Typeset renders the page; Publish ships it.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ta = document.getElementById("ta");
+const statusEl = document.getElementById("status");
+const machineBody = document.getElementById("machineBody");
+let slug = null;
+let dirty = false;
+let busy = false;
+
+const setStatus = (s) => (statusEl.textContent = s);
+const api = (path, opts) => fetch("/api" + path, opts).then((r) => r.json());
+
+// ---- drafts ----
+async function refreshList() {
+  const list = await api("/drafts");
+  const el = document.getElementById("draftList");
+  el.innerHTML = "";
+  for (const d of list) {
+    const b = document.createElement("button");
+    b.className = "draft" + (d.slug === slug ? " active" : "");
+    b.textContent = d.slug;
+    b.onclick = () => openDraft(d.slug);
+    el.appendChild(b);
+  }
+}
+async function openDraft(s) {
+  if (dirty) await save();
+  const d = await api("/drafts/" + s);
+  slug = s;
+  ta.value = d.text;
+  document.getElementById("slugLabel").textContent = s;
+  dirty = false;
+  refreshList();
+  setStatus("opened " + s);
+}
+async function save() {
+  if (!slug) return;
+  await api("/drafts/" + slug, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: ta.value }),
+  });
+  dirty = false;
+  setStatus("saved");
+}
+let saveTimer;
+ta.addEventListener("input", () => {
+  dirty = true;
+  setStatus("…");
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(save, 900);
+});
+document.getElementById("btnNew").onclick = async () => {
+  const s = prompt("slug (kebab-case):");
+  if (!s || !/^[a-z0-9-]+$/.test(s)) return;
+  await api("/drafts/" + s, {
+    method: "PUT",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: `---\ntitle: ${s}\ndek: \ndate: \nstatus: draft\n---\n\n` }),
+  });
+  openDraft(s);
+};
+
+// ---- jobs ----
+async function pollJob(id, onUpdate) {
+  while (true) {
+    const job = await api("/jobs/" + id);
+    onUpdate(job);
+    if (job.status !== "running") return job;
+    await new Promise((r) => setTimeout(r, 1500));
+  }
+}
+function renderLog(job) {
+  return `<div class="log">${job.log.map((l) => l.replace(/</g, "&lt;")).join("\n")}</div>`;
+}
+
+// ---- continue ----
+document.getElementById("btnContinue").onclick = doContinue;
+document.addEventListener("keydown", (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); doContinue(); }
+});
+async function doContinue() {
+  if (!slug || busy) return;
+  const hint = prompt("note for what comes next (optional):") ?? "";
+  await save();
+  const cursor = ta.selectionStart;
+  const before = ta.value.slice(0, cursor);
+  const after = ta.value.slice(cursor);
+  busy = true;
+  setStatus("continuing…");
+  machineBody.innerHTML = `<div class="log">sampling fable ×2 + sol ×2…</div>`;
+  const { jobId } = await api("/continue", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ before, after, hint }),
+  });
+  const job = await pollJob(jobId, (j) => (machineBody.innerHTML = renderLog(j)));
+  busy = false;
+  if (job.status === "error") { setStatus("continue failed"); return; }
+  setStatus("judged");
+  renderCandidates(job.result, cursor);
+}
+function renderCandidates({ candidates, verdict }, cursor) {
+  machineBody.innerHTML = "";
+  const v = document.createElement("div");
+  v.className = "verdict";
+  v.textContent = verdict.rationale;
+  const order = verdict.ranking.length ? verdict.ranking : candidates.map((_, i) => i);
+  for (const idx of order) {
+    const c = candidates[idx];
+    const div = document.createElement("div");
+    div.className = "cand" + (idx === verdict.winnerIndex ? " winner" : "");
+    div.innerHTML = `
+      <div class="meta">
+        <span class="model-${c.model}">${c.model}-${c.variant}</span>
+        <span>${verdict.labels[idx] ?? ""}</span>
+        ${idx === verdict.winnerIndex ? "<span>★ judge's pick</span>" : ""}
+      </div>
+      <div class="text">${c.text.replace(/</g, "&lt;")}</div>
+      <div class="actions">
+        <button class="ins">insert at cursor</button>
+        <button class="exp">expand</button>
+      </div>`;
+    div.querySelector(".ins").onclick = () => {
+      const t = ta.value;
+      const glue = t.slice(0, cursor).endsWith("\n\n") || cursor === 0 ? "" : "\n\n";
+      const tail = t.slice(cursor).startsWith("\n") ? "" : "\n\n";
+      ta.value = t.slice(0, cursor) + glue + c.text + tail + t.slice(cursor);
+      dirty = true;
+      save();
+      setStatus(`inserted ${c.model}-${c.variant}`);
+    };
+    div.querySelector(".exp").onclick = () => div.querySelector(".text").classList.toggle("open");
+    machineBody.appendChild(div);
+  }
+  machineBody.appendChild(v);
+}
+
+// ---- typeset / publish ----
+document.getElementById("btnTypeset").onclick = async () => {
+  if (!slug || busy) return;
+  await save();
+  busy = true;
+  setStatus("typesetting…");
+  machineBody.innerHTML = `<div class="log">typesetting (opus-4-8)…</div>`;
+  const { jobId } = await api("/typeset", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ slug }),
+  });
+  const job = await pollJob(jobId, (j) => (machineBody.innerHTML = renderLog(j)));
+  busy = false;
+  if (job.status === "error") { setStatus("typeset failed"); return; }
+  setStatus("typeset");
+  machineBody.innerHTML =
+    `<div class="log">typeset complete — <a href="${job.result.preview}" target="_blank">open preview</a></div>` +
+    `<div class="verdict">${job.result.notes.replace(/</g, "&lt;")}</div>`;
+};
+
+document.getElementById("btnPublish").onclick = async () => {
+  if (!slug || busy) return;
+  if (!confirm(`publish essays/${slug} to roonscape.ai?`)) return;
+  busy = true;
+  setStatus("publishing…");
+  const { jobId } = await api("/publish", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ slug }),
+  });
+  const job = await pollJob(jobId, (j) => (machineBody.innerHTML = renderLog(j)));
+  busy = false;
+  if (job.status === "error") { setStatus("publish failed"); return; }
+  setStatus("published");
+  machineBody.innerHTML = `<div class="log">live: <a href="${job.result.live}" target="_blank">${job.result.live}</a></div>`;
+};
+
+// ---- boot ----
+refreshList().then(async () => {
+  const list = await api("/drafts");
+  if (list.length) openDraft(list[0].slug);
+});
+</script>
+</body>
+</html>
