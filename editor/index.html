@@ -115,6 +115,8 @@
   <span class="slug" id="slugLabel">—</span>
   <span class="status" id="status">ready</span>
   <button id="btnContinue">Continue ⌘⏎</button>
+  <button id="btnCritique">Critique</button>
+  <button id="btnIdeate">Ideate</button>
   <button id="btnTypeset">Typeset</button>
   <button id="btnPublish">Publish</button>
 </header>
@@ -276,6 +278,31 @@ function renderCandidates({ candidates, verdict }, cursor) {
   }
   machineBody.appendChild(v);
 }
+
+// ---- critique / ideate ----
+async function thinkJob(kind, body, statusWord) {
+  if (!slug || busy) return;
+  await save();
+  busy = true;
+  setStatus(statusWord + "…");
+  machineBody.innerHTML = `<div class="log">${statusWord} — fable + sol, many samples…</div>`;
+  const { jobId } = await api("/" + kind, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const job = await pollJob(jobId, (j) => (machineBody.innerHTML = renderLog(j)));
+  busy = false;
+  if (job.status === "error") { setStatus(kind + " failed"); return; }
+  setStatus(kind + " done");
+  machineBody.innerHTML = `<div class="verdict">${job.result.report.replace(/</g, "&lt;")}</div>`;
+}
+document.getElementById("btnCritique").onclick = () =>
+  thinkJob("critique", { draft: ta.value }, "critiquing");
+document.getElementById("btnIdeate").onclick = () => {
+  const q = prompt("ideate on what? (e.g. 'how should this essay end')");
+  if (q) thinkJob("ideate", { context: ta.value, question: q }, "ideating");
+};
 
 // ---- typeset / publish ----
 document.getElementById("btnTypeset").onclick = async () => {

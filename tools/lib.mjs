@@ -168,6 +168,128 @@ export async function sampleCandidates({ before, after = "", hint = "", onProgre
   return candidates;
 }
 
+// ---- thinking engine: critique + ideation ----
+// Fable and Sol used for what they're best at — thought, critique, ideation.
+// Many samples, deliberate token spend, synthesis at the end.
+
+async function fableThink(prompt) {
+  ensureKey();
+  const client = new Anthropic();
+  const stream = client.beta.messages.stream({
+    model: "claude-fable-5",
+    max_tokens: 16000,
+    output_config: { effort: "high" },
+    betas: ["server-side-fallback-2026-06-01"],
+    fallbacks: [{ model: "claude-opus-4-8" }],
+    messages: [{ role: "user", content: prompt }],
+  });
+  const msg = await stream.finalMessage();
+  if (msg.stop_reason === "refusal") throw new Error("fable refused");
+  return msg.content.find((b) => b.type === "text")?.text.trim() ?? "";
+}
+
+const solThink = (prompt) => sampleSol(prompt);
+
+const CRITIC_LEVELS = {
+  essay: (draft) => `You are a ruthless editor. Critique this essay draft at the ESSAY level only: the argument's architecture. Where is the thesis strongest and weakest? What beat is missing? What should be cut entirely? Where does the ordering fight the argument? Identify the 3 strongest things (so they don't get edited away) and the 3 biggest structural problems. Be adversarial; do not flatter; do not line-edit.
+
+<draft>
+${draft}
+</draft>`,
+  paragraph: (draft) => `You are a ruthless editor. Critique this essay draft at the PARAGRAPH level only. For each paragraph: does it earn its place? where does it sag? does its opening move repeat the previous paragraph's? are the transitions doing work or just adjacency? Quote the first few words of each paragraph you discuss so the author can find it. Do not restructure the whole essay and do not line-edit sentences.
+
+<draft>
+${draft}
+</draft>`,
+  sentence: (draft) => `You are a ruthless line editor with a specific brief: hunt LLM-flavored prose. Quote exact sentences that are weak, cliché, or machine-scented — contrastive parallelism ("not X but Y"), tricolon escalation, aphorism-landing paragraph closers, tidy "this is the quiet mechanism by which..." moves, over-balanced clauses. For each: quote it, name the tic, and describe the MOVE that would fix it (cut, break the symmetry, bury the point mid-sentence, etc.). Do NOT write replacement prose — the author writes their own sentences. Also flag any factually shaky claims.
+
+<draft>
+${draft}
+</draft>`,
+};
+
+export async function critiqueDraft({ draft, onProgress = () => {} }) {
+  const passes = [];
+  for (const [level, tmpl] of Object.entries(CRITIC_LEVELS)) {
+    for (const [model, run] of [["fable", fableThink], ["sol", solThink]]) {
+      passes.push(
+        run(tmpl(draft)).then(
+          (text) => {
+            onProgress(`${model}/${level}: done (${text.length} chars)`);
+            return { model, level, text };
+          },
+          (e) => {
+            onProgress(`${model}/${level}: FAILED (${e.message})`);
+            return null;
+          },
+        ),
+      );
+    }
+  }
+  const reports = (await Promise.all(passes)).filter(Boolean);
+  if (!reports.length) throw new Error("all critique passes failed");
+
+  onProgress("synthesizing (fable) ...");
+  const synthesis = await fableThink(`Six independent editorial reports on the same draft follow (two models x three levels: essay, paragraph, sentence). Merge them into ONE report the author will actually use:
+- Dedupe. Where reports agree, say so once (agreement is signal — mark it).
+- Keep only the strongest critiques; kill weak or generic notes.
+- Organize by level: ESSAY, then PARAGRAPH, then SENTENCE. Quote the text each item targets.
+- End with "TOP 3 PRIORITIES" — the three changes worth making first.
+- Critique and moves only; never draft replacement prose in the author's voice.
+
+<draft>
+${draft}
+</draft>
+
+${reports.map((r) => `<report model="${r.model}" level="${r.level}">\n${r.text}\n</report>`).join("\n\n")}`);
+  return { synthesis, reports };
+}
+
+export async function ideate({ context, question, onProgress = () => {} }) {
+  const round1Prompt = (m) => `${context ? `CONTEXT (a draft in progress):\n<draft>\n${context}\n</draft>\n\n` : ""}QUESTION: ${question}
+
+Generate exactly 10 distinct ideas answering this question. Number them. One short paragraph each — the idea itself plus why it might work. Range widely; don't converge.`;
+
+  onProgress("round 1: 10 ideas each from fable + sol ...");
+  const [f1, s1] = await Promise.all([
+    fableThink(round1Prompt("fable")),
+    solThink(round1Prompt("sol")).catch((e) => {
+      onProgress(`sol round 1 FAILED (${e.message})`);
+      return null;
+    }),
+  ]);
+
+  const pool1 = [f1, s1].filter(Boolean).join("\n\n");
+  const round2Prompt = `${context ? `CONTEXT (a draft in progress):\n<draft>\n${context}\n</draft>\n\n` : ""}QUESTION: ${question}
+
+Below are ${s1 ? 20 : 10} ideas already generated for this question. Treat ALL of them as the obvious first-pass answers — the ones any strong model produces on the first try. REJECT the entire pool. Then generate 10 NEW ideas that are structurally different: different frame, different scale, different move. Non-obvious but genuinely good — weird-but-defensible beats safe-but-stale. Number them and give one short paragraph each.
+
+<rejected_pool>
+${pool1}
+</rejected_pool>`;
+
+  onProgress("round 2: reject the obvious, 10 more each ...");
+  const [f2, s2] = await Promise.all([
+    fableThink(round2Prompt),
+    solThink(round2Prompt).catch((e) => {
+      onProgress(`sol round 2 FAILED (${e.message})`);
+      return null;
+    }),
+  ]);
+
+  onProgress("selection: picking the best across all rounds ...");
+  const selection = await fableThink(`${context ? `CONTEXT (a draft in progress):\n<draft>\n${context}\n</draft>\n\n` : ""}QUESTION: ${question}
+
+Up to 40 candidate ideas follow, from two models across two rounds (round 2 was forced to reject round 1 as too obvious). Pick the 5 BEST ideas overall — judged on originality, defensibility, and fit to the question and context. Round-2 ideas are not automatically better; an obvious idea executed perfectly can beat a clever one. For each pick: restate the idea sharply in 1-2 sentences, tag its provenance (model/round), and say why it beats its neighbors. Then give one line on the strongest idea you REJECTED and why it just missed.
+
+<round1_fable>${f1 ?? "(failed)"}</round1_fable>
+<round1_sol>${s1 ?? "(failed)"}</round1_sol>
+<round2_fable>${f2 ?? "(failed)"}</round2_fable>
+<round2_sol>${s2 ?? "(failed)"}</round2_sol>`);
+
+  return { selection, rounds: { f1, s1, f2, s2 } };
+}
+
 // Blind judge (Fable) — returns { ranking, rationale, winnerIndex } over the
 // candidates array as passed (indices refer to it).
 export async function judgeCandidates({ before, candidates, onProgress = () => {} }) {

@@ -16,7 +16,7 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
-import { ROOT, sampleCandidates, judgeCandidates } from "../tools/lib.mjs";
+import { ROOT, sampleCandidates, judgeCandidates, critiqueDraft, ideate } from "../tools/lib.mjs";
 
 const PORT = 8805;
 const DRAFTS = path.join(ROOT, "drafts");
@@ -40,6 +40,16 @@ async function runContinue(job, { before, after, hint }) {
   if (candidates.length < 2) throw new Error("fewer than 2 candidates; not enough to judge");
   const verdict = await judgeCandidates({ before, candidates, onProgress: logTo(job) });
   job.result = { candidates, verdict };
+}
+
+async function runCritique(job, { draft }) {
+  const { synthesis } = await critiqueDraft({ draft, onProgress: logTo(job) });
+  job.result = { report: synthesis };
+}
+
+async function runIdeate(job, { context, question }) {
+  const { selection } = await ideate({ context, question, onProgress: logTo(job) });
+  job.result = { report: selection };
 }
 
 function runProcess(job, cmd, args, opts = {}) {
@@ -140,6 +150,14 @@ const server = http.createServer(async (req, res) => {
     if (req.method === "POST" && parts[0] === "api" && parts[1] === "continue") {
       const { before, after, hint } = await readBody(req);
       return json(res, 200, { jobId: launch("continue", runContinue, { before, after, hint }).id });
+    }
+    if (req.method === "POST" && parts[0] === "api" && parts[1] === "critique") {
+      const { draft } = await readBody(req);
+      return json(res, 200, { jobId: launch("critique", runCritique, { draft }).id });
+    }
+    if (req.method === "POST" && parts[0] === "api" && parts[1] === "ideate") {
+      const { context, question } = await readBody(req);
+      return json(res, 200, { jobId: launch("ideate", runIdeate, { context, question }).id });
     }
     if (req.method === "POST" && parts[0] === "api" && parts[1] === "typeset") {
       const { slug } = await readBody(req);
